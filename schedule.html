@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedule Manager</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #0f172a;
+        color: #1e293b;
+        min-height: 100vh;
+      }
+
+      /* ── HEADER ── */
+      .header {
+        background: linear-gradient(135deg, #1e3a5f, #2563eb);
+        color: white;
+        padding: 14px 16px 10px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 12px #0006;
+      }
+      .header h1 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .header p {
+        font-size: 0.72rem;
+        opacity: 0.75;
+        margin-top: 2px;
+      }
+
+      /* ── PERIOD CONTROL ── */
+      .period-bar {
+        background: #1e3a5f;
+        padding: 8px 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .period-bar label {
+        color: #93c5fd;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .period-bar select,
+      .period-bar input[type="number"] {
+        background: #0f2040;
+        color: white;
+        border: 1px solid #2563eb;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+      }
+      .btn-apply {
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 5px 14px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-apply:active {
+        background: #1d4ed8;
+      }
+
+      /* ── ACTION BAR ── */
+      .action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #172554;
+      }
+      .action-bar button {
+        flex: 1 1 auto;
+        min-width: 90px;
+        padding: 7px 6px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .action-bar button:active {
+        opacity: 0.7;
+      }
+      .btn-add {
+        background: #22c55e;
+        color: #fff;
+      }
+      .btn-edit {
+        background: #f59e0b;
+        color: #fff;
+      }
+      .btn-del {
+        background: #ef4444;
+        color: #fff;
+      }
+      .btn-up {
+        background: #6366f1;
+        color: #fff;
+      }
+      .btn-dn {
+        background: #6366f1;
+        color: #fff;
+      }
+      .btn-save {
+        background: #16a34a;
+        color: #fff;
+      }
+      .btn-export {
+        background: #0ea5e9;
+        color: #fff;
+      }
+
+      /* ── LEGEND ── */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        padding: 6px 12px;
+        background: #f1f5f9;
+        border-bottom: 1px solid #cbd5e1;
+      }
+      .legend-item {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      /* ── TABLE ── */
+      .table-wrap {
+        overflow-x: auto;
+        background: #fff;
+      }
+      table {
+        border-collapse: collapse;
+        min-width: 100%;
+        font-size: 0.78rem;
+      }
+      th {
+        background: #1e3a5f;
+        color: white;
+        padding: 8px 10px;
+        text-align: center;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        border-right: 1px solid #2e4f7a;
+        border-bottom: 2px solid #2563eb;
+        font-size: 0.72rem;
+      }
+      th.col-task {
+        text-align: left;
+        min-width: 200px;
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background: #1e3a5f;
+        border-right: 2px solid #2563eb;
+      }
+      td {
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 5px 4px;
+        text-align: center;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: filter 0.1s;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      td:active {
+        filter: brightness(0.85);
+      }
+      td.col-task {
+        text-align: left;
+        padding: 7px 12px;
+        min-width: 200px;
+        max-width: 260px;
+        white-space: normal;
+        word-break: break-word;
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        cursor: default;
+        font-weight: 500;
+        border-right: 2px solid #cbd5e1;
+        font-size: 0.8rem;
+        color: #1e293b;
+      }
+      tr:nth-child(even) td.col-task {
+        background: #f1f5f9;
+      }
+      tr:nth-child(odd) td.col-task {
+        background: #ffffff;
+      }
+      tr:nth-child(even) {
+        background: #f8fafc;
+      }
+      tr:nth-child(odd) {
+        background: #ffffff;
+      }
+      tr:hover td {
+        filter: brightness(0.96);
+      }
+      tr.selected td.col-task {
+        background: #dbeafe !important;
+      }
+      tr.selected td {
+        background-color: #eff6ff;
+      }
+
+      /* Status pill inside cell */
+      .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .s-plan .pill {
+        background: #bfdbfe;
+        color: #1e40af;
+      }
+      .s-inprogress .pill {
+        background: #fef08a;
+        color: #854d0e;
+      }
+      .s-done .pill {
+        background: #bbf7d0;
+        color: #166534;
+      }
+      .s-cancel .pill {
+        background: #fecaca;
+        color: #991b1b;
+      }
+      .s-empty .pill {
+        color: #d1d5db;
+        font-weight: 400;
+      }
+
+      /* Status colors */
+      .s-plan {
+        background: #bfdbfe;
+        color: #1e40af;
+      }
+      .s-inprogress {
+        background: #fef08a;
+        color: #854d0e;
+      }
+      .s-done {
+        background: #bbf7d0;
+        color: #166534;
+      }
+      .s-cancel {
+        background: #fecaca;
+        color: #991b1b;
+      }
+      .s-empty {
+        background: transparent;
+        color: #cbd5e1;
+        font-weight: 400;
+      }
+
+      /* ── MODAL ── */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #000a;
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
+      .modal {
+        background: white;
+        border-radius: 14px;
+        padding: 22px 20px;
+        width: 90%;
+        max-width: 380px;
+        box-shadow: 0 8px 32px #0008;
+      }
+      .modal h3 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+        color: #1e3a5f;
+      }
+      .modal input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        margin-bottom: 14px;
+        outline: none;
+      }
+      .modal input:focus {
+        border-color: #2563eb;
+      }
+      .modal-btns {
+        display: flex;
+        gap: 8px;
+      }
+      .modal-btns button {
+        flex: 1;
+        padding: 9px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-ok {
+        background: #2563eb;
+        color: white;
+      }
+      .btn-cancel {
+        background: #e2e8f0;
+        color: #475569;
+      }
+
+      /* ── TOAST ── */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e3a5f;
+        color: white;
+        padding: 10px 22px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        box-shadow: 0 4px 16px #0006;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 9999;
+        white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <div class="header">
+      <h1>📅 SCHEDULE MANAGER</h1>
+      <p>Klik sel tanggal untuk ganti status</p>
+    </div>
+
+    <!-- PERIOD -->
+    <div class="period-bar">
+      <label>Bulan:</label>
+      <select id="selMonth"></select>
+      <label>Tahun:</label>
+      <input
+        type="number"
+        id="inpYear"
+        min="2020"
+        max="2099"
+        value="2026"
+        style="width: 72px"
+      />
+      <button class="btn-apply" onclick="applyPeriod()">🔄 Terapkan</button>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+      <button class="btn-add" onclick="addTask()">➕ Tambah</button>
+      <button class="btn-edit" onclick="editTask()">✏️ Edit</button>
+      <button class="btn-del" onclick="deleteTask()">🗑️ Hapus</button>
+      <button class="btn-up" onclick="moveTask(-1)">🔼 Naik</button>
+      <button class="btn-dn" onclick="moveTask(1)">🔽 Turun</button>
+      <button class="btn-save" onclick="saveData()">💾 Simpan</button>
+      <button class="btn-export" onclick="exportCSV()">📤 Export CSV</button>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+      <span class="legend-item s-plan">PLAN</span>
+      <span class="legend-item s-inprogress">IN PROGRESS</span>
+      <span class="legend-item s-done">DONE</span>
+      <span class="legend-item s-cancel">CANCEL</span>
+      <span
+        style="
+          font-size: 0.7rem;
+          color: #94a3b8;
+          align-self: center;
+          margin-left: 4px;
+        "
+        >← klik sel untuk ganti</span
+      >
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table id="schedTable">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal">
+      <div class="modal">
+        <h3 id="modalTitle">Tambah Kegiatan</h3>
+        <input type="text" id="modalInput" placeholder="Nama kegiatan..." />
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="closeModal()">Batal</button>
+          <button class="btn-ok" id="modalOk" onclick="modalConfirm()">
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // ── DATA ──
+      const MONTHS = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+      ];
+      const STATUS_CYCLE = ["", "PLAN", "IN PROGRESS", "DONE", "CANCEL"];
+      const STATUS_CLASS = {
+        "": "s-empty",
+        PLAN: "s-plan",
+        "IN PROGRESS": "s-inprogress",
+        DONE: "s-done",
+        CANCEL: "s-cancel",
+      };
+
+      let tasks = [
+        { name: "PERBAIKAN CORONG BPO", s: { 4: "PLAN" } },
+        { name: "OTOMATISASI BACHING PLANT", s: { 4: "PLAN" } },
+        { name: "PENGAJUAN MATERIAL", s: { 4: "PLAN" } },
+        { name: "KOORDINASI KEBUTUHAN TM KE KARANG JATI", s: { 4: "PLAN" } },
+        { name: "JARINGAN ROOTER ORBIT", s: { 4: "PLAN" } },
+        { name: "FOLLOW UP LOAD CELL KE PAK BENI", s: { 4: "PLAN" } },
+        { name: "ORDER SATU BALK SEMEN (TRIAL JBT TIMBANG)", s: { 4: "PLAN" } },
+        { name: "PERENCANAAN COR STOCK PILE", s: { 4: "PLAN" } },
+        { name: "PENDIRIAN TOWER AIR", s: { 4: "PLAN" } },
+        { name: "ESTALASI GROWN TECT", s: { 4: "PLAN" } },
+        { name: "PENGAJUAN LAMPU SENTER KEPALA", s: { 4: "PLAN" } },
+        { name: "FOLLOW UP SARPRAS KE PAK PANDU", s: { 7: "PLAN" } },
+      ];
+
+      let selectedRow = null;
+      let curMonth, curYear, days;
+
+      // ── INIT ──
+      window.onload = () => {
+        const sel = document.getElementById("selMonth");
+        MONTHS.forEach((m, i) => {
+          const o = document.createElement("option");
+          o.value = i + 1;
+          o.textContent = m;
+          sel.appendChild(o);
+        });
+
+        // Load data tersimpan
+        const saved = localStorage.getItem("schedule_data");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            tasks = parsed.tasks || tasks;
+            sel.value = parsed.month || new Date().getMonth() + 1;
+            document.getElementById("inpYear").value =
+              parsed.year || new Date().getFullYear();
+            toast("📂 Data tersimpan berhasil dimuat!");
+          } catch (e) {
+            const now = new Date();
+            sel.value = now.getMonth() + 1;
+            document.getElementById("inpYear").value = now.getFullYear();
+          }
+        } else {
+          const now = new Date();
+          sel.value = now.getMonth() + 1;
+          document.getElementById("inpYear").value = now.getFullYear();
+        }
+
+        applyPeriod();
+      };
+
+      // ── SIMPAN ──
+      function saveData() {
+        const data = {
+          tasks,
+          month: +document.getElementById("selMonth").value,
+          year: +document.getElementById("inpYear").value,
+          savedAt: new Date().toLocaleString("id-ID"),
+        };
+        localStorage.setItem("schedule_data", JSON.stringify(data));
+        toast("✅ Data berhasil disimpan!");
+      }
+
+      // Auto-save setiap ada perubahan status
+      function cycleStatus(ri, day) {
+        const cur = tasks[ri].s[day] || "";
+        const idx = STATUS_CYCLE.indexOf(cur);
+        const nxt = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+        if (nxt === "") delete tasks[ri].s[day];
+        else tasks[ri].s[day] = nxt;
+        autoSave();
+        render();
+      }
+
+      function applyPeriod() {
+        curMonth = +document.getElementById("selMonth").value;
+        curYear = +document.getElementById("inpYear").value;
+        const total = new Date(curYear, curMonth, 0).getDate();
+        days = Array.from({ length: total }, (_, i) => i + 1);
+        render();
+      }
+
+      // ── RENDER ──
+      function render() {
+        const thead = document.querySelector("#schedTable thead");
+        const tbody = document.querySelector("#schedTable tbody");
+        thead.innerHTML = "";
+        tbody.innerHTML = "";
+
+        // Header
+        const hr = document.createElement("tr");
+        const th0 = document.createElement("th");
+        th0.className = "col-task";
+        th0.textContent = `KEGIATAN  |  ${MONTHS[
+          curMonth - 1
+        ].toUpperCase()} ${curYear}`;
+        hr.appendChild(th0);
+        days.forEach((d) => {
+          const th = document.createElement("th");
+          th.innerHTML = `${d}<br><span style='font-size:.65rem;opacity:.7'>${MONTHS[
+            curMonth - 1
+          ]
+            .slice(0, 3)
+            .toUpperCase()}</span>`;
+          hr.appendChild(th);
+        });
+        thead.appendChild(hr);
+
+        // Rows
+        tasks.forEach((t, ri) => {
+          const tr = document.createElement("tr");
+          if (ri === selectedRow) tr.classList.add("selected");
+
+          const td0 = document.createElement("td");
+          td0.className = "col-task";
+          td0.textContent = t.name;
+          td0.onclick = () => {
+            selectedRow = ri;
+            render();
+          };
+          tr.appendChild(td0);
+
+          days.forEach((d) => {
+            const td = document.createElement("td");
+            const st = t.s[d] || "";
+            td.className = STATUS_CLASS[st];
+            const pill = document.createElement("span");
+            pill.className = "pill";
+            pill.textContent = st || "—";
+            td.appendChild(pill);
+            td.onclick = () => cycleStatus(ri, d);
+            tr.appendChild(td);
+          });
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Auto-save senyap
+      function autoSave() {
+        const data = {
+          tasks,
+          month: +document.getElementById("selMonth").value,
+          year: +document.getElementById("inpYear").value,
+          savedAt: new Date().toLocaleString("id-ID"),
+        };
+        localStorage.setItem("schedule_data", JSON.stringify(data));
+      }
+
+      // ── STATUS CYCLE ──
+      function cycleStatus(ri, day) {
+        const cur = tasks[ri].s[day] || "";
+        const idx = STATUS_CYCLE.indexOf(cur);
+        const nxt = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+        if (nxt === "") delete tasks[ri].s[day];
+        else tasks[ri].s[day] = nxt;
+        autoSave();
+        render();
+      }
+
+      // ── MODAL ──
+      let modalMode = null;
+      function openModal(title, val = "") {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalInput").value = val;
+        document.getElementById("modal").classList.add("show");
+        setTimeout(() => document.getElementById("modalInput").focus(), 100);
+      }
+      function closeModal() {
+        document.getElementById("modal").classList.remove("show");
+      }
+      function modalConfirm() {
+        const val = document
+          .getElementById("modalInput")
+          .value.trim()
+          .toUpperCase();
+        if (!val) return;
+        if (modalMode === "add") {
+          tasks.push({ name: val, s: {} });
+          selectedRow = tasks.length - 1;
+        }
+        if (modalMode === "edit" && selectedRow !== null) {
+          tasks[selectedRow].name = val;
+        }
+        closeModal();
+        autoSave();
+        render();
+        toast("✅ Tersimpan!");
+      }
+
+      function addTask() {
+        modalMode = "add";
+        openModal("➕ Tambah Kegiatan");
+      }
+      function editTask() {
+        if (selectedRow === null) {
+          toast("⚠️ Pilih baris dulu!");
+          return;
+        }
+        modalMode = "edit";
+        openModal("✏️ Edit Kegiatan", tasks[selectedRow].name);
+      }
+
+      // ── HAPUS ──
+      function deleteTask() {
+        if (selectedRow === null) {
+          toast("⚠️ Pilih baris dulu!");
+          return;
+        }
+        if (!confirm(`Hapus "${tasks[selectedRow].name}"?`)) return;
+        tasks.splice(selectedRow, 1);
+        selectedRow = null;
+        render();
+        toast("🗑️ Dihapus!");
+      }
+
+      // ── PINDAH URUTAN ──
+      function moveTask(dir) {
+        if (selectedRow === null) {
+          toast("⚠️ Pilih baris dulu!");
+          return;
+        }
+        const ni = selectedRow + dir;
+        if (ni < 0 || ni >= tasks.length) return;
+        [tasks[selectedRow], tasks[ni]] = [tasks[ni], tasks[selectedRow]];
+        selectedRow = ni;
+        render();
+      }
+
+      // ── EXPORT CSV ──
+      function exportCSV() {
+        let csv = `"KEGIATAN / TASK"`;
+        days.forEach(
+          (d) =>
+            (csv += `,"${d} ${MONTHS[curMonth - 1].toUpperCase()} ${curYear}"`)
+        );
+        csv += "\n";
+        tasks.forEach((t) => {
+          csv += `"${t.name}"`;
+          days.forEach((d) => (csv += `,"${t.s[d] || ""}"`));
+          csv += "\n";
+        });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `schedule_${MONTHS[curMonth - 1]}_${curYear}.csv`;
+        a.click();
+        toast("💾 File CSV terunduh!");
+      }
+
+      // ── TOAST ──
+      function toast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 2200);
+      }
+
+      // Close modal on overlay click
+      document.getElementById("modal").addEventListener("click", function (e) {
+        if (e.target === this) closeModal();
+      });
+
+      // Enter key on modal input
+      document.getElementById("modalInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") modalConfirm();
+      });
+    </script>
+  </body>
+</html>
